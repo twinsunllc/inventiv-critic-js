@@ -1,35 +1,66 @@
-# Inventiv Critic JavaScript Library
+# Inventiv Critic JavaScript SDK
 
-Use this library to build web-based integrations with [Inventiv Critic](https://inventiv.io/critic/).
-
-## Requirements
-
-Use of this library requires jQuery to make calls to the Critic REST API.
+Official JavaScript/TypeScript client for [Inventiv Critic](https://inventiv.io/critic/).
 
 ## Installation
 
-Copy `critic.js` into your project and reference it using a `<script>` tag.
-
-**OR**
-
-Install using Bower:
-    
-    bower install git+https://github.com/inventiv-llc/inventiv-critic-js.git
-
-**OR**
-
-Install using NPM:
-
-    npm install git+https://github.com/inventiv-llc/inventiv-critic-js.git
+```bash
+npm install inventiv-critic-js
+```
 
 ## Usage
 
-Review `example/report.html` for a working example form that submits customer feedback reports to Critic.
+### ES Modules / TypeScript
 
-1. Create an HTML form that includes the Report fields you care about.
-1. Include your Product's `product_access_token` as the first argument in your `Critic.Report.create()` function 
-call. This token can be found by viewing your Product's details in the Critic web portal.
-1. Create a Report by adding the following to your web page:
+```typescript
+import { CriticClient } from "inventiv-critic-js";
+
+const critic = new CriticClient();
+
+await critic.createReport({
+  productAccessToken: "YOUR_PRODUCT_ACCESS_TOKEN",
+  description: "User feedback description",
+  metadata: { browser: navigator.userAgent },
+});
 ```
-Critic.Report.create(product_access_token, description, metadata, attachments);
+
+### CommonJS
+
+```javascript
+const { CriticClient } = require("inventiv-critic-js");
+
+const critic = new CriticClient();
 ```
+
+### Script Tag (UMD/IIFE)
+
+```html
+<script src="dist/index.global.js"></script>
+<script>
+  const client = new Critic.CriticClient();
+</script>
+```
+
+## Configuration
+
+```typescript
+const critic = new CriticClient({
+  host: "https://custom-critic-host.example.com", // default: https://critic.inventiv.io
+});
+```
+
+## Development
+
+```bash
+nvm use              # Use correct Node version
+npm install          # Install dependencies
+npm run build        # Build ESM, CJS, and IIFE bundles
+npm test             # Run tests
+npm run lint         # Lint and format check
+npm run typecheck    # Type check
+```
+
+## Requirements
+
+- Node.js 20 LTS or later
+- No runtime dependencies (uses native `fetch()`)

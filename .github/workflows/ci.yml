@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Nightly at 1 AM Central (6 AM UTC)
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a  # v4.2.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Run tests
+        run: |
+          TEST_SCRIPT=$(jq -r '.scripts.test // empty' package.json)
+          if [ -n "$TEST_SCRIPT" ] && [ "$TEST_SCRIPT" != "echo \"Error: no test specified\" && exit 1" ]; then
+            npm test
+          else
+            echo "No test script configured, skipping."
+          fi
+
+  # --- Nightly security jobs ---
+
+  npm-audit:
+    name: npm Audit
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a  # v4.2.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=moderate
+
+  package-age-check:
+    name: npm Package Age Check
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+      - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a  # v4.2.0
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Check dependency publication dates
+        shell: bash
+        run: |
+          set -euo pipefail
+          QUARANTINE_DAYS=7
+          NOW=$(date +%s)
+          FAILED=0
+
+          # Get all resolved production + dev dependencies from package-lock.json
+          DEPS=$(npm ls --all --json 2>/dev/null | jq -r '
+            [.. | .dependencies? // empty | to_entries[] | "\(.key)@\(.value.version // "")"]
+            | unique[]' 2>/dev/null || true)
+
+          if [ -z "$DEPS" ]; then
+            echo "No dependencies found, skipping."
+            exit 0
+          fi
+
+          for DEP in $DEPS; do
+            PKG=$(echo "$DEP" | sed 's/@[^@]*$//')
+            VER=$(echo "$DEP" | grep -oE '[^@]+$')
+
+            if [ -z "$VER" ]; then continue; fi
+
+            PUBLISHED=$(npm view "$PKG" "time.$VER" 2>/dev/null || true)
+            if [ -z "$PUBLISHED" ]; then
+              echo "  ⚠ Could not fetch publish date for $PKG@$VER"
+              continue
+            fi
+
+            PUB_EPOCH=$(date -d "$PUBLISHED" +%s 2>/dev/null || echo 0)
+            if [ "$PUB_EPOCH" -eq 0 ]; then
+              echo "  ⚠ Could not parse date for $PKG@$VER: $PUBLISHED"
+              continue
+            fi
+
+            AGE_DAYS=$(( (NOW - PUB_EPOCH) / 86400 ))
+            if [ "$AGE_DAYS" -lt "$QUARANTINE_DAYS" ]; then
+              echo "  ✗ FAIL: $PKG@$VER published $AGE_DAYS days ago (< $QUARANTINE_DAYS day quarantine) — $PUBLISHED"
+              FAILED=1
+            else
+              echo "  ✓ OK: $PKG@$VER published $AGE_DAYS days ago"
+            fi
+          done
+
+          if [ "$FAILED" -eq 1 ]; then
+            echo ""
+            echo "::error::One or more dependencies were published within the last $QUARANTINE_DAYS days. See above for details."
+            exit 1
+          fi
+
+          echo ""
+          echo "All dependencies pass the $QUARANTINE_DAYS-day quarantine check."
+
+  actions-security:
+    name: GitHub Actions Security Check
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+      - name: Run GitHub Actions security audit
+        uses: twinsunllc/github-actions-security-checker@3431967fb16dd3d0e96fcf823ba33609c2df31ee  # v1.4.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          allowlist: |
+            twinsunllc
+      - name: Upload audit report
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f  # v6.0.0
+        if: always()
+        with:
+          name: action-security-report
+          path: action-security-report.md
+          retention-days: 30

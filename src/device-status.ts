@@ -28,7 +28,7 @@ export async function getDeviceStatus(): Promise<DeviceStatus> {
         navigator as Navigator & { getBattery(): Promise<BatteryManager> }
       ).getBattery();
       status.battery_charging = battery.charging;
-      status.battery_level = battery.level * 100;
+      status.battery_level = Math.round(battery.level * 100);
     } catch {
       // Battery API unavailable or rejected — skip gracefully
     }

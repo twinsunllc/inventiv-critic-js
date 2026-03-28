@@ -118,6 +118,24 @@ describe("getDeviceStatus", () => {
     });
   });
 
+  describe("memory (Node.js)", () => {
+    it("populates memory_total and memory_free from os module when window is undefined", async () => {
+      // Simulate Node.js environment: no window global
+      vi.stubGlobal("window", undefined);
+      vi.stubGlobal("navigator", {});
+      // process.versions.node is naturally truthy in vitest (Node.js runner)
+
+      const os = await import("node:os");
+      const status = await getDeviceStatus();
+
+      // memory_total is stable (total RAM doesn't change at runtime)
+      expect(status.memory_total).toBe(os.totalmem());
+      // memory_free changes constantly; just assert it's a positive number
+      expect(typeof status.memory_free).toBe("number");
+      expect((status.memory_free as number) > 0).toBe(true);
+    });
+  });
+
   describe("memory (browser)", () => {
     it("converts deviceMemory GB to bytes", async () => {
       vi.stubGlobal("navigator", {

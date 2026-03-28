@@ -1,4 +1,5 @@
 import { CriticClient, DEFAULT_HOST } from "./client.js";
+import { getDeviceStatus } from "./device-status.js";
 import type { BugReport } from "./types.js";
 
 type Callback = (result: unknown) => void;
@@ -38,11 +39,13 @@ export const Critic = {
   host: DEFAULT_HOST,
 
   Report: {
-    create(options: ReportOptions): Promise<BugReport> {
+    async create(options: ReportOptions): Promise<BugReport> {
       const client = new CriticClient({
         host: options.host ?? Critic.host,
         apiToken: options.apiToken,
       });
+
+      const deviceStatus = await getDeviceStatus();
 
       const promise = client.createBugReport(
         options.appInstallId,
@@ -53,6 +56,7 @@ export const Critic = {
           user_identifier: options.user_identifier,
         },
         options.attachments,
+        deviceStatus,
       );
 
       if (options.success || options.failure) {

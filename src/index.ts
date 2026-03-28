@@ -10,7 +10,4 @@ export type {
   BugReport,
   BugReportInput,
   Attachment,
-  Device,
-  PaginatedResponse,
-  ListBugReportsOptions,
 } from "./types.js";

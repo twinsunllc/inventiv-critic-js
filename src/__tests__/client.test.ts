@@ -21,7 +21,6 @@ describe("CriticClient", () => {
     vi.stubGlobal("fetch", mockFetch);
     client = new CriticClient({
       apiToken: "org-token",
-      appApiToken: "app-token",
     });
   });
 
@@ -196,114 +195,6 @@ describe("CriticClient", () => {
       await expect(client.createBugReport("install-uuid", { description: "Bug" })).rejects.toThrow(
         AuthError,
       );
-    });
-  });
-
-  describe("listBugReports", () => {
-    const paginatedResponse = {
-      count: 2,
-      current_page: 1,
-      total_pages: 1,
-      bug_reports: [
-        { id: "r1", description: "Bug 1" },
-        { id: "r2", description: "Bug 2" },
-      ],
-    };
-
-    it("sends GET with app_api_token", async () => {
-      mockFetch.mockResolvedValue(mockResponse(200, paginatedResponse));
-
-      const result = await client.listBugReports();
-
-      expect(result.count).toBe(2);
-      expect(result.items).toHaveLength(2);
-      expect(result.items[0].id).toBe("r1");
-
-      const url: string = mockFetch.mock.calls[0][0];
-      expect(url).toContain("app_api_token=app-token");
-    });
-
-    it("includes optional filter params", async () => {
-      mockFetch.mockResolvedValue(mockResponse(200, paginatedResponse));
-
-      await client.listBugReports({
-        archived: true,
-        device_id: "dev-uuid",
-        since: "2026-01-01T00:00:00Z",
-      });
-
-      const url: string = mockFetch.mock.calls[0][0];
-      expect(url).toContain("archived=true");
-      expect(url).toContain("device_id=dev-uuid");
-      expect(url).toContain("since=2026-01-01T00%3A00%3A00Z");
-    });
-
-    it("throws CriticError when appApiToken is missing", async () => {
-      const noAppTokenClient = new CriticClient({ apiToken: "org-token" });
-      await expect(noAppTokenClient.listBugReports()).rejects.toThrow("appApiToken is required");
-    });
-  });
-
-  describe("getBugReport", () => {
-    const report = { id: "uuid-1", description: "A bug" };
-
-    it("sends GET with id in path and app_api_token", async () => {
-      mockFetch.mockResolvedValue(mockResponse(200, report));
-
-      const result = await client.getBugReport("uuid-1");
-
-      expect(result).toEqual(report);
-      const url: string = mockFetch.mock.calls[0][0];
-      expect(url).toContain("/api/v3/bug_reports/uuid-1");
-      expect(url).toContain("app_api_token=app-token");
-    });
-
-    it("URL-encodes the id", async () => {
-      mockFetch.mockResolvedValue(mockResponse(200, report));
-
-      await client.getBugReport("id/with/slashes");
-
-      const url: string = mockFetch.mock.calls[0][0];
-      expect(url).toContain("id%2Fwith%2Fslashes");
-    });
-
-    it("throws CriticError on 404", async () => {
-      mockFetch.mockResolvedValue(mockResponse(404, { error: "Not found" }, false));
-
-      await expect(client.getBugReport("nonexistent")).rejects.toThrow(CriticError);
-    });
-
-    it("throws CriticError when appApiToken is missing", async () => {
-      const noAppTokenClient = new CriticClient({ apiToken: "org-token" });
-      await expect(noAppTokenClient.getBugReport("id")).rejects.toThrow("appApiToken is required");
-    });
-  });
-
-  describe("listDevices", () => {
-    const paginatedResponse = {
-      count: 1,
-      current_page: 1,
-      total_pages: 1,
-      devices: [{ id: "d1", identifier: "device-1" }],
-    };
-
-    it("sends GET with app_api_token and returns paginated devices", async () => {
-      mockFetch.mockResolvedValue(mockResponse(200, paginatedResponse));
-
-      const result = await client.listDevices();
-
-      expect(result.count).toBe(1);
-      expect(result.items).toHaveLength(1);
-      expect(result.items[0].id).toBe("d1");
-
-      const url: string = mockFetch.mock.calls[0][0];
-      expect(url).toContain("/api/v3/devices");
-      expect(url).toContain("app_api_token=app-token");
-    });
-
-    it("throws CriticError when appApiToken is missing", async () => {
-      const noAppTokenClient = new CriticClient({ apiToken: "org-token" });
-      await expect(noAppTokenClient.listDevices()).rejects.toThrow("appApiToken is required");
     });
   });
 

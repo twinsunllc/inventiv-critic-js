@@ -451,7 +451,9 @@ describe("MSW integration: legacy Critic.Report.create()", () => {
       http.post(`${TEST_HOST}/api/v3/bug_reports`, async ({ request }) => {
         const formData = await request.formData();
         expect(formData.get("bug_report[metadata]")).toBe('{"env":"test"}');
-        expect(formData.get("bug_report[steps_to_reproduce]")?.toString().replace(/\r\n/g, "\n")).toBe("Step 1\nStep 2");
+        expect(
+          formData.get("bug_report[steps_to_reproduce]")?.toString().replace(/\r\n/g, "\n"),
+        ).toBe("Step 1\nStep 2");
         expect(formData.get("bug_report[user_identifier]")).toBe("legacy@test.com");
 
         return HttpResponse.json(

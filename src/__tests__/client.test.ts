@@ -196,6 +196,97 @@ describe("CriticClient", () => {
         AuthError,
       );
     });
+
+    it("does not attach console logs when captureConsoleLogs is disabled", async () => {
+      mockFetch.mockResolvedValue(mockResponse(201, bugReport));
+
+      await client.createBugReport("install-uuid", { description: "Bug" });
+
+      const fd: FormData = mockFetch.mock.calls[0][1].body;
+      expect(fd.getAll("bug_report[attachments][]")).toHaveLength(0);
+    });
+
+    it("auto-attaches console logs when captureConsoleLogs is enabled", async () => {
+      const captureClient = new CriticClient({
+        apiToken: "org-token",
+        captureConsoleLogs: true,
+      });
+      mockFetch.mockResolvedValue(mockResponse(201, bugReport));
+
+      console.log("test log for capture");
+      console.warn("test warning for capture");
+
+      await captureClient.createBugReport("install-uuid", { description: "Bug" });
+
+      const fd: FormData = mockFetch.mock.calls[0][1].body;
+      const attachments = fd.getAll("bug_report[attachments][]");
+      expect(attachments.length).toBeGreaterThanOrEqual(1);
+
+      const logFile = attachments.find(
+        (a) => a instanceof File && a.name === "console-logs.txt",
+      ) as File;
+      expect(logFile).toBeDefined();
+      expect(logFile.type).toBe("text/plain");
+
+      const text = await logFile.text();
+      expect(text).toContain("test log for capture");
+      expect(text).toContain("test warning for capture");
+
+      captureClient.destroy();
+    });
+
+    it("does not attach console logs file when buffer is empty", async () => {
+      const captureClient = new CriticClient({
+        apiToken: "org-token",
+        captureConsoleLogs: true,
+      });
+      mockFetch.mockResolvedValue(mockResponse(201, bugReport));
+
+      // No console output — buffer is empty
+      await captureClient.createBugReport("install-uuid", { description: "Bug" });
+
+      const fd: FormData = mockFetch.mock.calls[0][1].body;
+      expect(fd.getAll("bug_report[attachments][]")).toHaveLength(0);
+
+      captureClient.destroy();
+    });
+
+    it("appends console logs alongside user-provided attachments", async () => {
+      const captureClient = new CriticClient({
+        apiToken: "org-token",
+        captureConsoleLogs: true,
+      });
+      mockFetch.mockResolvedValue(mockResponse(201, bugReport));
+
+      console.log("captured");
+
+      const userFile = new File(["img"], "screenshot.png", { type: "image/png" });
+      await captureClient.createBugReport("install-uuid", { description: "Bug" }, [userFile]);
+
+      const fd: FormData = mockFetch.mock.calls[0][1].body;
+      const attachments = fd.getAll("bug_report[attachments][]");
+      expect(attachments).toHaveLength(2);
+
+      captureClient.destroy();
+    });
+  });
+
+  describe("destroy", () => {
+    it("restores console methods after destroy", () => {
+      const originalLog = console.log;
+      const captureClient = new CriticClient({
+        apiToken: "org-token",
+        captureConsoleLogs: true,
+      });
+      expect(console.log).not.toBe(originalLog);
+      captureClient.destroy();
+      expect(console.log).toBe(originalLog);
+    });
+
+    it("is a no-op when captureConsoleLogs is not enabled", () => {
+      const c = new CriticClient({ apiToken: "t" });
+      expect(() => c.destroy()).not.toThrow();
+    });
   });
 
   describe("error handling", () => {

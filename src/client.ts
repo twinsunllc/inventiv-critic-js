@@ -1,3 +1,4 @@
+import { ConsoleLogCapture } from "./console-capture.js";
 import { CriticError, AuthError } from "./errors.js";
 import type {
   CriticConfig,
@@ -27,6 +28,9 @@ export class CriticClient {
   readonly host: string;
   private readonly apiToken: string;
 
+  /** Console log capture instance (only present when `captureConsoleLogs` is enabled). */
+  private readonly consoleCapture: ConsoleLogCapture | null = null;
+
   /**
    * Create a new CriticClient.
    *
@@ -35,6 +39,19 @@ export class CriticClient {
   constructor(config: CriticConfig) {
     this.host = (config.host ?? DEFAULT_HOST).replace(/\/+$/, "");
     this.apiToken = config.apiToken;
+
+    if (config.captureConsoleLogs) {
+      this.consoleCapture = new ConsoleLogCapture();
+      this.consoleCapture.start();
+    }
+  }
+
+  /**
+   * Stop console log capture and restore original console methods.
+   * No-op if capture was not enabled.
+   */
+  destroy(): void {
+    this.consoleCapture?.stop();
   }
 
   /**
@@ -101,6 +118,12 @@ export class CriticClient {
       for (const file of attachments) {
         formData.append("bug_report[attachments][]", file);
       }
+    }
+
+    // Auto-attach captured console logs when capture is enabled
+    const consoleLogFile = this.consoleCapture?.toFile();
+    if (consoleLogFile) {
+      formData.append("bug_report[attachments][]", consoleLogFile);
     }
 
     if (deviceStatus) {

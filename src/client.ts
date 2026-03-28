@@ -7,9 +7,6 @@ import type {
   AppInstall,
   BugReport,
   BugReportInput,
-  Device,
-  PaginatedResponse,
-  ListBugReportsOptions,
 } from "./types.js";
 
 /** Default Critic API host. */
@@ -29,7 +26,6 @@ export class CriticClient {
   /** The resolved API host URL (trailing slashes stripped). */
   readonly host: string;
   private readonly apiToken: string;
-  private readonly appApiToken: string | undefined;
 
   /**
    * Create a new CriticClient.
@@ -39,7 +35,6 @@ export class CriticClient {
   constructor(config: CriticConfig) {
     this.host = (config.host ?? DEFAULT_HOST).replace(/\/+$/, "");
     this.apiToken = config.apiToken;
-    this.appApiToken = config.appApiToken;
   }
 
   /**
@@ -125,110 +120,7 @@ export class CriticClient {
     return (await response.json()) as BugReport;
   }
 
-  /**
-   * List bug reports.
-   *
-   * Sends a `GET /api/v3/bug_reports` request. Requires {@link CriticConfig.appApiToken}.
-   *
-   * @param options - Optional filters (archived, device_id, since).
-   * @returns A {@link PaginatedResponse} of {@link BugReport} items.
-   * @throws {@link CriticError} if `appApiToken` was not provided.
-   */
-  async listBugReports(options?: ListBugReportsOptions): Promise<PaginatedResponse<BugReport>> {
-    this.requireAppApiToken();
-
-    const params = new URLSearchParams();
-    params.set("app_api_token", this.appApiToken!);
-
-    if (options?.archived !== undefined) {
-      params.set("archived", String(options.archived));
-    }
-    if (options?.device_id) {
-      params.set("device_id", options.device_id);
-    }
-    if (options?.since) {
-      params.set("since", options.since);
-    }
-
-    const response = await fetch(`${this.host}/api/v3/bug_reports?${params.toString()}`);
-    await this.assertOk(response);
-
-    const data = (await response.json()) as {
-      count: number;
-      current_page: number;
-      total_pages: number;
-      bug_reports: BugReport[];
-    };
-
-    return {
-      count: data.count,
-      current_page: data.current_page,
-      total_pages: data.total_pages,
-      items: data.bug_reports,
-    };
-  }
-
-  /**
-   * Get a single bug report by UUID.
-   *
-   * Sends a `GET /api/v3/bug_reports/:uuid` request. Requires {@link CriticConfig.appApiToken}.
-   *
-   * @param id - The bug report UUID.
-   * @returns The matching {@link BugReport}.
-   * @throws {@link CriticError} if `appApiToken` was not provided or the report is not found.
-   */
-  async getBugReport(id: string): Promise<BugReport> {
-    this.requireAppApiToken();
-
-    const params = new URLSearchParams();
-    params.set("app_api_token", this.appApiToken!);
-
-    const response = await fetch(
-      `${this.host}/api/v3/bug_reports/${encodeURIComponent(id)}?${params.toString()}`,
-    );
-    await this.assertOk(response);
-    return (await response.json()) as BugReport;
-  }
-
-  /**
-   * List devices.
-   *
-   * Sends a `GET /api/v3/devices` request. Requires {@link CriticConfig.appApiToken}.
-   *
-   * @returns A {@link PaginatedResponse} of {@link Device} items.
-   * @throws {@link CriticError} if `appApiToken` was not provided.
-   */
-  async listDevices(): Promise<PaginatedResponse<Device>> {
-    this.requireAppApiToken();
-
-    const params = new URLSearchParams();
-    params.set("app_api_token", this.appApiToken!);
-
-    const response = await fetch(`${this.host}/api/v3/devices?${params.toString()}`);
-    await this.assertOk(response);
-
-    const data = (await response.json()) as {
-      count: number;
-      current_page: number;
-      total_pages: number;
-      devices: Device[];
-    };
-
-    return {
-      count: data.count,
-      current_page: data.current_page,
-      total_pages: data.total_pages,
-      items: data.devices,
-    };
-  }
-
   // ---- private helpers ----
-
-  private requireAppApiToken(): void {
-    if (!this.appApiToken) {
-      throw new CriticError("appApiToken is required for GET endpoints", 0);
-    }
-  }
 
   private async postJson<T>(path: string, body: unknown): Promise<T> {
     const response = await fetch(`${this.host}${path}`, {

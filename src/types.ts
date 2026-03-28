@@ -4,8 +4,6 @@ export interface CriticConfig {
   host?: string;
   /** Organization-level API token used for POST endpoints. */
   apiToken: string;
-  /** App-level API token used for GET endpoints. */
-  appApiToken?: string;
 }
 
 /** Application metadata sent during ping. */
@@ -68,32 +66,4 @@ export interface BugReportInput {
   metadata?: Record<string, unknown>;
   steps_to_reproduce?: string;
   user_identifier?: string;
-}
-
-/** A device returned by the API. */
-export interface Device {
-  id: string;
-  identifier: string;
-  manufacturer: string;
-  model: string;
-  platform: string;
-  platform_version: string;
-  created_at: string;
-  updated_at: string;
-  [key: string]: unknown;
-}
-
-/** Paginated API response wrapper. */
-export interface PaginatedResponse<T> {
-  count: number;
-  current_page: number;
-  total_pages: number;
-  items: T[];
-}
-
-/** Options for listing bug reports. */
-export interface ListBugReportsOptions {
-  archived?: boolean;
-  device_id?: string;
-  since?: string;
 }

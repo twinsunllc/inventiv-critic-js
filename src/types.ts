@@ -4,6 +4,14 @@ export interface CriticConfig {
   host?: string;
   /** Organization-level API token used for POST endpoints. */
   apiToken: string;
+  /**
+   * When `true`, wraps global `console` methods to capture the last 500 log
+   * entries. The captured logs are automatically attached as a text file to
+   * bug reports created via {@link CriticClient.createBugReport}.
+   *
+   * Defaults to `false` because it modifies global `console` methods.
+   */
+  captureConsoleLogs?: boolean;
 }
 
 /** Application metadata sent during ping. */

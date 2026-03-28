@@ -61,6 +61,10 @@ export const Critic = {
 
       if (options.success || options.failure) {
         promise.then(options.success, options.failure);
+        // Swallow the rejection here so callers using the callback style
+        // (who don't await the return value) don't trigger an unhandled
+        // rejection. The failure callback above is responsible for handling it.
+        return promise.catch(() => undefined as unknown as BugReport);
       }
 
       return promise;

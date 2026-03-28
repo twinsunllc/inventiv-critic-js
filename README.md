@@ -89,9 +89,6 @@ const client = new CriticClient({
   // Required: organization-level API token (used for POST endpoints)
   apiToken: "YOUR_ORG_API_TOKEN",
 
-  // Optional: app-level API token (required for GET endpoints like listing reports)
-  appApiToken: "YOUR_APP_API_TOKEN",
-
   // Optional: override the API host (default: https://critic.inventiv.io)
   host: "https://custom-critic-host.example.com",
 });
@@ -106,18 +103,6 @@ Register an app install. Returns an `AppInstall` with an `id` you'll use for bug
 ### `client.createBugReport(appInstallId, report, attachments?, deviceStatus?)`
 
 Submit a bug report with optional file attachments and device status.
-
-### `client.listBugReports(options?)`
-
-List bug reports. Requires `appApiToken`. Supports filters: `archived`, `device_id`, `since`.
-
-### `client.getBugReport(id)`
-
-Get a single bug report by UUID. Requires `appApiToken`.
-
-### `client.listDevices()`
-
-List registered devices. Requires `appApiToken`.
 
 ## Error Handling
 

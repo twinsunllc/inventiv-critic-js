@@ -13,11 +13,10 @@ beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-function createClient(opts?: { appApiToken?: string }) {
+function createClient() {
   return new CriticClient({
     host: TEST_HOST,
     apiToken: "test-org-token",
-    appApiToken: opts?.appApiToken ?? "test-app-token",
   });
 }
 
@@ -248,156 +247,6 @@ describe("MSW integration: createBugReport", () => {
     await expect(client.createBugReport("install-1", { description: "Bug" })).rejects.toThrow(
       AuthError,
     );
-  });
-});
-
-describe("MSW integration: listBugReports", () => {
-  it("GET /api/v3/bug_reports returns paginated results", async () => {
-    server.use(
-      http.get(`${TEST_HOST}/api/v3/bug_reports`, ({ request }) => {
-        const url = new URL(request.url);
-        expect(url.searchParams.get("app_api_token")).toBe("test-app-token");
-
-        return HttpResponse.json({
-          count: 2,
-          current_page: 1,
-          total_pages: 1,
-          bug_reports: [
-            { id: "r1", description: "Bug 1" },
-            { id: "r2", description: "Bug 2" },
-          ],
-        });
-      }),
-    );
-
-    const client = createClient();
-    const result = await client.listBugReports();
-
-    expect(result.count).toBe(2);
-    expect(result.items).toHaveLength(2);
-    expect(result.items[0].id).toBe("r1");
-  });
-
-  it("sends filter parameters", async () => {
-    server.use(
-      http.get(`${TEST_HOST}/api/v3/bug_reports`, ({ request }) => {
-        const url = new URL(request.url);
-        expect(url.searchParams.get("archived")).toBe("true");
-        expect(url.searchParams.get("device_id")).toBe("dev-1");
-        expect(url.searchParams.get("since")).toBe("2026-01-01T00:00:00Z");
-
-        return HttpResponse.json({
-          count: 0,
-          current_page: 1,
-          total_pages: 0,
-          bug_reports: [],
-        });
-      }),
-    );
-
-    const client = createClient();
-    await client.listBugReports({
-      archived: true,
-      device_id: "dev-1",
-      since: "2026-01-01T00:00:00Z",
-    });
-  });
-
-  it("throws CriticError on 500", async () => {
-    server.use(
-      http.get(`${TEST_HOST}/api/v3/bug_reports`, () => {
-        return HttpResponse.json({ error: "Internal server error" }, { status: 500 });
-      }),
-    );
-
-    const client = createClient();
-    await expect(client.listBugReports()).rejects.toThrow(CriticError);
-  });
-});
-
-describe("MSW integration: getBugReport", () => {
-  it("GET /api/v3/bug_reports/:uuid returns a single report", async () => {
-    server.use(
-      http.get(`${TEST_HOST}/api/v3/bug_reports/uuid-abc`, ({ request }) => {
-        const url = new URL(request.url);
-        expect(url.searchParams.get("app_api_token")).toBe("test-app-token");
-
-        return HttpResponse.json({
-          id: "uuid-abc",
-          description: "Specific bug",
-          metadata: { key: "val" },
-          steps_to_reproduce: null,
-          user_identifier: null,
-          created_at: "2026-01-01T00:00:00Z",
-          updated_at: "2026-01-01T00:00:00Z",
-          attachments: [],
-        });
-      }),
-    );
-
-    const client = createClient();
-    const result = await client.getBugReport("uuid-abc");
-
-    expect(result.id).toBe("uuid-abc");
-    expect(result.description).toBe("Specific bug");
-  });
-
-  it("throws CriticError on 404", async () => {
-    server.use(
-      http.get(`${TEST_HOST}/api/v3/bug_reports/nonexistent`, () => {
-        return HttpResponse.json({ error: "Not found" }, { status: 404 });
-      }),
-    );
-
-    const client = createClient();
-    await expect(client.getBugReport("nonexistent")).rejects.toThrow(CriticError);
-  });
-});
-
-describe("MSW integration: listDevices", () => {
-  it("GET /api/v3/devices returns paginated devices", async () => {
-    server.use(
-      http.get(`${TEST_HOST}/api/v3/devices`, ({ request }) => {
-        const url = new URL(request.url);
-        expect(url.searchParams.get("app_api_token")).toBe("test-app-token");
-
-        return HttpResponse.json({
-          count: 1,
-          current_page: 1,
-          total_pages: 1,
-          devices: [
-            {
-              id: "d1",
-              identifier: "device-1",
-              manufacturer: "Apple",
-              model: "iPhone 15",
-              platform: "ios",
-              platform_version: "17.0",
-              created_at: "2026-01-01T00:00:00Z",
-              updated_at: "2026-01-01T00:00:00Z",
-            },
-          ],
-        });
-      }),
-    );
-
-    const client = createClient();
-    const result = await client.listDevices();
-
-    expect(result.count).toBe(1);
-    expect(result.items).toHaveLength(1);
-    expect(result.items[0].identifier).toBe("device-1");
-  });
-
-  it("throws CriticError on 500", async () => {
-    server.use(
-      http.get(`${TEST_HOST}/api/v3/devices`, () => {
-        return HttpResponse.json({ error: "Server error" }, { status: 500 });
-      }),
-    );
-
-    const client = createClient();
-    await expect(client.listDevices()).rejects.toThrow(CriticError);
   });
 });
 

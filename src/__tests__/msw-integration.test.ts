@@ -3,6 +3,7 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { CriticClient } from "../client.js";
 import { CriticError, AuthError } from "../errors.js";
+import { Critic } from "../legacy.js";
 
 const TEST_HOST = "https://critic-test.example.com";
 
@@ -397,5 +398,170 @@ describe("MSW integration: listDevices", () => {
 
     const client = createClient();
     await expect(client.listDevices()).rejects.toThrow(CriticError);
+  });
+});
+
+describe("MSW integration: legacy Critic.Report.create()", () => {
+  const savedHost = Critic.host;
+
+  afterEach(() => {
+    Critic.host = savedHost;
+  });
+
+  it("creates a bug report via the legacy facade", async () => {
+    Critic.host = TEST_HOST;
+
+    server.use(
+      http.post(`${TEST_HOST}/api/v3/bug_reports`, async ({ request }) => {
+        const formData = await request.formData();
+        expect(formData.get("api_token")).toBe("legacy-org-token");
+        expect(formData.get("app_install[id]")).toBe("install-legacy");
+        expect(formData.get("bug_report[description]")).toBe("Legacy bug");
+
+        return HttpResponse.json(
+          {
+            id: "report-legacy",
+            description: "Legacy bug",
+            metadata: null,
+            steps_to_reproduce: null,
+            user_identifier: null,
+            created_at: "2026-01-01T00:00:00Z",
+            updated_at: "2026-01-01T00:00:00Z",
+            attachments: [],
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const result = await Critic.Report.create({
+      apiToken: "legacy-org-token",
+      appInstallId: "install-legacy",
+      description: "Legacy bug",
+    });
+
+    expect(result.id).toBe("report-legacy");
+    expect(result.description).toBe("Legacy bug");
+  });
+
+  it("sends optional fields through the legacy facade", async () => {
+    Critic.host = TEST_HOST;
+
+    server.use(
+      http.post(`${TEST_HOST}/api/v3/bug_reports`, async ({ request }) => {
+        const formData = await request.formData();
+        expect(formData.get("bug_report[metadata]")).toBe('{"env":"test"}');
+        expect(formData.get("bug_report[steps_to_reproduce]")?.toString().replace(/\r\n/g, "\n")).toBe("Step 1\nStep 2");
+        expect(formData.get("bug_report[user_identifier]")).toBe("legacy@test.com");
+
+        return HttpResponse.json(
+          {
+            id: "report-legacy-2",
+            description: "Legacy with opts",
+            metadata: { env: "test" },
+            steps_to_reproduce: "Step 1\nStep 2",
+            user_identifier: "legacy@test.com",
+            created_at: "2026-01-01T00:00:00Z",
+            updated_at: "2026-01-01T00:00:00Z",
+            attachments: [],
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const result = await Critic.Report.create({
+      apiToken: "legacy-org-token",
+      appInstallId: "install-legacy",
+      description: "Legacy with opts",
+      metadata: { env: "test" },
+      steps_to_reproduce: "Step 1\nStep 2",
+      user_identifier: "legacy@test.com",
+    });
+
+    expect(result.metadata).toEqual({ env: "test" });
+    expect(result.steps_to_reproduce).toBe("Step 1\nStep 2");
+  });
+
+  it("supports custom host override via options", async () => {
+    server.use(
+      http.post(`${TEST_HOST}/api/v3/bug_reports`, async () => {
+        return HttpResponse.json(
+          {
+            id: "report-custom-host",
+            description: "Custom host bug",
+            metadata: null,
+            steps_to_reproduce: null,
+            user_identifier: null,
+            created_at: "2026-01-01T00:00:00Z",
+            updated_at: "2026-01-01T00:00:00Z",
+            attachments: [],
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    const result = await Critic.Report.create({
+      host: TEST_HOST,
+      apiToken: "org-token",
+      appInstallId: "install-1",
+      description: "Custom host bug",
+    });
+
+    expect(result.id).toBe("report-custom-host");
+  });
+
+  it("invokes success callback on successful create", async () => {
+    Critic.host = TEST_HOST;
+
+    server.use(
+      http.post(`${TEST_HOST}/api/v3/bug_reports`, async () => {
+        return HttpResponse.json(
+          {
+            id: "report-cb",
+            description: "Callback bug",
+            metadata: null,
+            steps_to_reproduce: null,
+            user_identifier: null,
+            created_at: "2026-01-01T00:00:00Z",
+            updated_at: "2026-01-01T00:00:00Z",
+            attachments: [],
+          },
+          { status: 201 },
+        );
+      }),
+    );
+
+    let successResult: unknown;
+    await Critic.Report.create({
+      apiToken: "org-token",
+      appInstallId: "install-1",
+      description: "Callback bug",
+      success: (r) => {
+        successResult = r;
+      },
+    });
+
+    await new Promise((r) => setTimeout(r, 0));
+    expect((successResult as { id: string }).id).toBe("report-cb");
+  });
+
+  it("throws AuthError on 401 via legacy facade", async () => {
+    Critic.host = TEST_HOST;
+
+    server.use(
+      http.post(`${TEST_HOST}/api/v3/bug_reports`, () => {
+        return HttpResponse.json({ error: "Invalid token" }, { status: 401 });
+      }),
+    );
+
+    await expect(
+      Critic.Report.create({
+        apiToken: "bad-token",
+        appInstallId: "install-1",
+        description: "Should fail",
+      }),
+    ).rejects.toThrow(AuthError);
   });
 });

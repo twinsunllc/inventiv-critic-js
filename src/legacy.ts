@@ -1,4 +1,5 @@
 import { CriticClient, DEFAULT_HOST } from "./client.js";
+import { getDeviceStatus } from "./device-status.js";
 import type { BugReport } from "./types.js";
 
 type Callback = (result: unknown) => void;
@@ -38,11 +39,13 @@ export const Critic = {
   host: DEFAULT_HOST,
 
   Report: {
-    create(options: ReportOptions): Promise<BugReport> {
+    async create(options: ReportOptions): Promise<BugReport> {
       const client = new CriticClient({
         host: options.host ?? Critic.host,
         apiToken: options.apiToken,
       });
+
+      const deviceStatus = await getDeviceStatus();
 
       const promise = client.createBugReport(
         options.appInstallId,
@@ -53,10 +56,15 @@ export const Critic = {
           user_identifier: options.user_identifier,
         },
         options.attachments,
+        deviceStatus,
       );
 
       if (options.success || options.failure) {
         promise.then(options.success, options.failure);
+        // Swallow the rejection here so callers using the callback style
+        // (who don't await the return value) don't trigger an unhandled
+        // rejection. The failure callback above is responsible for handling it.
+        return promise.catch(() => undefined as unknown as BugReport);
       }
 
       return promise;

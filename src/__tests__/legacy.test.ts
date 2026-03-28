@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Critic } from "../legacy.js";
 import { DEFAULT_HOST } from "../client.js";
+import * as deviceStatusModule from "../device-status.js";
 
 describe("Critic.Report.create (legacy API)", () => {
   let mockFetch: ReturnType<typeof vi.fn>;
@@ -117,5 +118,26 @@ describe("Critic.Report.create (legacy API)", () => {
 
   it("defaults to Critic.host", () => {
     expect(Critic.host).toBe(DEFAULT_HOST);
+  });
+
+  it("automatically collects and sends device_status fields in the FormData", async () => {
+    vi.spyOn(deviceStatusModule, "getDeviceStatus").mockResolvedValue({
+      battery_charging: true,
+      battery_level: 80,
+      network_wifi_connected: true,
+      network_cell_connected: false,
+    });
+
+    await Critic.Report.create({
+      apiToken: "org-token",
+      appInstallId: "install-uuid",
+      description: "Bug with device status",
+    });
+
+    const fd: FormData = mockFetch.mock.calls[0][1].body;
+    expect(fd.get("device_status[battery_charging]")).toBe("true");
+    expect(fd.get("device_status[battery_level]")).toBe("80");
+    expect(fd.get("device_status[network_wifi_connected]")).toBe("true");
+    expect(fd.get("device_status[network_cell_connected]")).toBe("false");
   });
 });

@@ -19,8 +19,20 @@ interface ReportOptions {
 /**
  * Legacy convenience API for UMD/browser usage.
  *
- * Usage:
- *   Critic.Report.create({ apiToken: "...", appInstallId: "...", description: "..." })
+ * Provides a simplified interface that mirrors the original jQuery-based `critic.js` API
+ * while using the modern {@link CriticClient} under the hood.
+ *
+ * @example
+ * ```html
+ * <script src="dist/index.global.js"></script>
+ * <script>
+ *   Critic.Critic.Report.create({
+ *     apiToken: "YOUR_TOKEN",
+ *     appInstallId: "INSTALL_ID",
+ *     description: "Something broke",
+ *   });
+ * </script>
+ * ```
  */
 export const Critic = {
   host: DEFAULT_HOST,

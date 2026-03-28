@@ -1,5 +1,5 @@
 {
-  "name": "inventiv-critic-js",
+  "name": "@twinsunllc/critic",
   "version": "2.0.0",
   "description": "Official JavaScript/TypeScript client for Inventiv Critic",
   "type": "module",
@@ -28,16 +28,31 @@
     "lint": "eslint . && prettier --check .",
     "lint:fix": "eslint --fix . && prettier --write .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/twinsunllc/inventiv-critic-js.git"
   },
+  "keywords": [
+    "critic",
+    "inventiv",
+    "bug-report",
+    "feedback",
+    "sdk"
+  ],
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "eslint": "^9.0.0",
+    "msw": "^2.12.14",
     "prettier": "^3.2.0",
     "tsup": "^8.0.0",
     "typescript": "^5.4.0",

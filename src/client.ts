@@ -12,13 +12,30 @@ import type {
   ListBugReportsOptions,
 } from "./types.js";
 
+/** Default Critic API host. */
 export const DEFAULT_HOST = "https://critic.inventiv.io";
 
+/**
+ * Client for the Inventiv Critic v3 API.
+ *
+ * @example
+ * ```ts
+ * const client = new CriticClient({ apiToken: "org-token" });
+ * const install = await client.ping(appInfo, deviceInfo);
+ * await client.createBugReport(install.id, { description: "Something broke" });
+ * ```
+ */
 export class CriticClient {
+  /** The resolved API host URL (trailing slashes stripped). */
   readonly host: string;
   private readonly apiToken: string;
   private readonly appApiToken: string | undefined;
 
+  /**
+   * Create a new CriticClient.
+   *
+   * @param config - Client configuration including API tokens and optional host override.
+   */
   constructor(config: CriticConfig) {
     this.host = (config.host ?? DEFAULT_HOST).replace(/\/+$/, "");
     this.apiToken = config.apiToken;
@@ -27,7 +44,15 @@ export class CriticClient {
 
   /**
    * Register an app install with the Critic API.
-   * POST /api/v3/ping
+   *
+   * Sends a `POST /api/v3/ping` request with application and device metadata.
+   *
+   * @param app - Application metadata (name, package, platform, version).
+   * @param device - Device metadata (identifier, manufacturer, model, etc.).
+   * @param deviceStatus - Optional device status information (battery, network, etc.).
+   * @returns The registered {@link AppInstall} containing the install ID.
+   * @throws {@link AuthError} if the API token is invalid (401/403).
+   * @throws {@link CriticError} on any other non-OK response.
    */
   async ping(app: AppInfo, device: DeviceInfo, deviceStatus?: DeviceStatus): Promise<AppInstall> {
     const body: Record<string, unknown> = {
@@ -45,7 +70,16 @@ export class CriticClient {
 
   /**
    * Create a bug report.
-   * POST /api/v3/bug_reports (multipart)
+   *
+   * Sends a multipart `POST /api/v3/bug_reports` request.
+   *
+   * @param appInstallId - The app install ID returned by {@link ping}.
+   * @param report - Bug report fields (description, optional metadata/steps/user identifier).
+   * @param attachments - Optional file attachments (screenshots, logs, etc.).
+   * @param deviceStatus - Optional device status snapshot.
+   * @returns The created {@link BugReport}.
+   * @throws {@link AuthError} on 401/403.
+   * @throws {@link CriticError} on any other non-OK response.
    */
   async createBugReport(
     appInstallId: string,
@@ -93,7 +127,12 @@ export class CriticClient {
 
   /**
    * List bug reports.
-   * GET /api/v3/bug_reports
+   *
+   * Sends a `GET /api/v3/bug_reports` request. Requires {@link CriticConfig.appApiToken}.
+   *
+   * @param options - Optional filters (archived, device_id, since).
+   * @returns A {@link PaginatedResponse} of {@link BugReport} items.
+   * @throws {@link CriticError} if `appApiToken` was not provided.
    */
   async listBugReports(options?: ListBugReportsOptions): Promise<PaginatedResponse<BugReport>> {
     this.requireAppApiToken();
@@ -131,7 +170,12 @@ export class CriticClient {
 
   /**
    * Get a single bug report by UUID.
-   * GET /api/v3/bug_reports/:uuid
+   *
+   * Sends a `GET /api/v3/bug_reports/:uuid` request. Requires {@link CriticConfig.appApiToken}.
+   *
+   * @param id - The bug report UUID.
+   * @returns The matching {@link BugReport}.
+   * @throws {@link CriticError} if `appApiToken` was not provided or the report is not found.
    */
   async getBugReport(id: string): Promise<BugReport> {
     this.requireAppApiToken();
@@ -148,7 +192,11 @@ export class CriticClient {
 
   /**
    * List devices.
-   * GET /api/v3/devices
+   *
+   * Sends a `GET /api/v3/devices` request. Requires {@link CriticConfig.appApiToken}.
+   *
+   * @returns A {@link PaginatedResponse} of {@link Device} items.
+   * @throws {@link CriticError} if `appApiToken` was not provided.
    */
   async listDevices(): Promise<PaginatedResponse<Device>> {
     this.requireAppApiToken();

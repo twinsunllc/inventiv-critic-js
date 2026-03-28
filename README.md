@@ -26,14 +26,15 @@ const install = await client.ping(
   {
     name: "My App",
     package: "com.example.myapp",
-    platform: "web",
+    platform: "Web",
     version: { code: "42", name: "2.1.0" },
   },
   {
     identifier: "device-abc",
     manufacturer: "Browser",
     model: navigator.userAgent,
-    platform: "web",
+    network_carrier: "Wi-Fi",
+    platform: "Web",
     platform_version: navigator.appVersion,
   },
 );
@@ -80,7 +81,7 @@ const client = new CriticClient({
 API_TOKEN=your-token node example/node-example.mjs
 ```
 
-See [`example/node-example.mjs`](example/node-example.mjs) for a complete Node.js example demonstrating ping, bug report creation, and listing endpoints.
+See [`example/node-example.mjs`](example/node-example.mjs) for a complete Node.js example demonstrating ping and bug report creation.
 
 ## Configuration
 

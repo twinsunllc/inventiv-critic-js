@@ -1,5 +1,12 @@
 import { describe, it, expect } from "vitest";
-import { CriticClient, DEFAULT_HOST, CriticError, AuthError, Critic } from "../index.js";
+import {
+  CriticClient,
+  DEFAULT_HOST,
+  CriticError,
+  AuthError,
+  Critic,
+  getDeviceStatus,
+} from "../index.js";
 
 describe("barrel exports", () => {
   it("exports CriticClient", () => {
@@ -20,5 +27,9 @@ describe("barrel exports", () => {
     expect(Critic).toBeDefined();
     expect(Critic.Report).toBeDefined();
     expect(typeof Critic.Report.create).toBe("function");
+  });
+
+  it("exports getDeviceStatus function", () => {
+    expect(typeof getDeviceStatus).toBe("function");
   });
 });

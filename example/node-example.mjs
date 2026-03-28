@@ -2,10 +2,13 @@
  * Node.js usage example for the Inventiv Critic JS SDK.
  *
  * Prerequisites:
- *   npm install @twinsunllc/critic
+ *   npm run build          # build the SDK first
  *
  * Usage:
- *   API_TOKEN=your-org-token APP_API_TOKEN=your-app-token node example/node-example.mjs
+ *   API_TOKEN=your-org-token node example/node-example.mjs
+ *
+ * To target a local Critic instance:
+ *   API_TOKEN=your-org-token CRITIC_HOST=http://localhost:8000 node example/node-example.mjs
  */
 
 // When installed from npm, use:
@@ -14,7 +17,7 @@
 import { CriticClient, CriticError, AuthError } from "../dist/index.js";
 
 const API_TOKEN = process.env.API_TOKEN;
-const APP_API_TOKEN = process.env.APP_API_TOKEN;
+const CRITIC_HOST = process.env.CRITIC_HOST; // optional: override the default host
 
 if (!API_TOKEN) {
   console.error("Set API_TOKEN environment variable before running this example.");
@@ -23,9 +26,10 @@ if (!API_TOKEN) {
 
 const client = new CriticClient({
   apiToken: API_TOKEN,
-  appApiToken: APP_API_TOKEN,
-  // host: "https://custom-host.example.com",  // optional override
+  ...(CRITIC_HOST ? { host: CRITIC_HOST } : {}),
 });
+
+console.log(`Using Critic host: ${client.host}`);
 
 // --- 1. Register an app install (ping) ---
 try {
@@ -33,14 +37,15 @@ try {
     {
       name: "My Node App",
       package: "com.example.nodeapp",
-      platform: "node",
+      platform: "Web",
       version: { code: "1", name: "1.0.0" },
     },
     {
       identifier: `node-${process.pid}`,
       manufacturer: "Node.js",
       model: process.version,
-      platform: process.platform,
+      network_carrier: "N/A",
+      platform: "Web",
       platform_version: process.versions.node,
     },
   );
@@ -60,29 +65,5 @@ try {
     console.error("API error:", err.message, `(status ${err.status})`);
   } else {
     throw err;
-  }
-}
-
-// --- 3. List bug reports (requires APP_API_TOKEN) ---
-if (APP_API_TOKEN) {
-  try {
-    const page = await client.listBugReports();
-    console.log(`Found ${page.count} bug report(s) (page ${page.current_page}/${page.total_pages})`);
-    for (const report of page.items) {
-      console.log(`  - ${report.id}: ${report.description}`);
-    }
-  } catch (err) {
-    console.error("Failed to list bug reports:", err.message);
-  }
-
-  // --- 4. List devices ---
-  try {
-    const devices = await client.listDevices();
-    console.log(`Found ${devices.count} device(s)`);
-    for (const device of devices.items) {
-      console.log(`  - ${device.identifier} (${device.manufacturer} ${device.model})`);
-    }
-  } catch (err) {
-    console.error("Failed to list devices:", err.message);
   }
 }

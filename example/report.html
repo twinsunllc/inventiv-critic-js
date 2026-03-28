@@ -1,5 +1,7 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
     <title>Create Report - Inventiv Critic</title>
     <link href="report.css" media="all" rel="stylesheet" type="text/css" />
   </head>
@@ -10,19 +12,14 @@
         Please tell us about your experience!
       </div>
       <hr/>
-      <form enctype="multipart/form-data" id="report_create" onsubmit="return createReport()">
+      <form enctype="multipart/form-data" id="report_create">
         <p>
           <label for="report_description">Describe Your Experience</label>
           <textarea id="report_description" name="report[description]"></textarea>
         </p>
         <p>
-          <label for="report_metadata">Rate Your Experience</label>
-          <input type="hidden" id="report_metadata" name="report[metadata]" value='{"star_rating": 3}' disabled />
-          <i id="star_rating_1" class="fas fa-star" onclick="setStarRating(1)"></i>
-          <i id="star_rating_2" class="fas fa-star" onclick="setStarRating(2)"></i>
-          <i id="star_rating_3" class="fas fa-star" onclick="setStarRating(3)"></i>
-          <i id="star_rating_4" class="far fa-star" onclick="setStarRating(4)"></i>
-          <i id="star_rating_5" class="far fa-star" onclick="setStarRating(5)"></i>
+          <label>Rate Your Experience</label>
+          <span id="star_rating"></span>
         </p>
         <p>
           <label for="report_attachments">Screenshots (Optional)</label>
@@ -33,30 +30,65 @@
         </p>
       </form>
     </div>
+
     <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
-    <script type="text/javascript" src="../critic.js"></script>
-    <script type="text/javascript">
-      function createReport() {
-        product_access_token = "YOUR_PRODUCT_ACCESS_TOKEN";
-        description = $('#report_description').val();
-        metadata = $('#report_metadata').val();
-        attachments = document.getElementById('report_attachments').files;
+    <script src="../dist/index.global.js"></script>
+    <script>
+      // --- Configuration ---
+      const API_TOKEN = "YOUR_API_TOKEN";
+      const APP_INSTALL_ID = "YOUR_APP_INSTALL_ID";
 
-        Critic.Report.create(product_access_token, description, metadata, attachments);
-        return false;
-      }
+      // --- Star rating ---
+      let currentRating = 3;
 
-      function setStarRating(value) {
-        $('#report_metadata').val('{"star_rating": ' + value + '}');
-        for(var i=1; i<=5; i++) {
-          if(i<=value){
-            $('#star_rating_' + i).attr('class', 'fas fa-star');
-          }else{
-            $('#star_rating_' + i).attr('class', 'far fa-star');
-          }
+      function renderStars() {
+        const container = document.getElementById("star_rating");
+        container.innerHTML = "";
+        for (let i = 1; i <= 5; i++) {
+          const star = document.createElement("i");
+          star.className = i <= currentRating ? "fas fa-star" : "far fa-star";
+          star.style.cursor = "pointer";
+          star.addEventListener("click", () => {
+            currentRating = i;
+            renderStars();
+          });
+          container.appendChild(star);
         }
       }
+
+      renderStars();
+
+      // --- Form submission using the Critic SDK ---
+      document.getElementById("report_create").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (API_TOKEN === "YOUR_API_TOKEN") {
+          alert("You need to specify your own API token!");
+          return;
+        }
+
+        const description = document.getElementById("report_description").value;
+        const files = Array.from(document.getElementById("report_attachments").files);
+
+        const client = new Critic.CriticClient({
+          apiToken: API_TOKEN,
+        });
+
+        try {
+          await client.createBugReport(
+            APP_INSTALL_ID,
+            {
+              description,
+              metadata: { star_rating: currentRating },
+            },
+            files.length > 0 ? files : undefined,
+          );
+          alert("Thank you! Your report has been submitted.");
+        } catch (err) {
+          console.error("Failed to submit report:", err);
+          alert("Something went wrong. Please try again.");
+        }
+      });
     </script>
   </body>
 </html>

@@ -26,14 +26,14 @@ const install = await client.ping(
   {
     name: "My App",
     package: "com.example.myapp",
-    platform: "web",
+    platform: "Web",
     version: { code: "42", name: "2.1.0" },
   },
   {
     identifier: "device-abc",
     manufacturer: "Browser",
     model: navigator.userAgent,
-    platform: "web",
+    platform: "Web",
     platform_version: navigator.appVersion,
   },
 );

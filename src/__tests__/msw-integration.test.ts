@@ -28,18 +28,20 @@ describe("MSW integration: ping", () => {
         expect(body.api_token).toBe("test-org-token");
         expect(body.app).toBeDefined();
         expect(body.device).toBeDefined();
+        expect((body.app as Record<string, unknown>).platform).toBe("Web");
+        expect((body.device as Record<string, unknown>).platform).toBe("Web");
         return HttpResponse.json({ app_install: { id: "install-abc" } });
       }),
     );
 
     const client = createClient();
     const result = await client.ping(
-      { name: "App", package: "com.test", platform: "web", version: { code: "1", name: "1.0" } },
+      { name: "App", package: "com.test", platform: "Web", version: { code: "1", name: "1.0" } },
       {
         identifier: "dev-1",
         manufacturer: "Test",
         model: "Browser",
-        platform: "web",
+        platform: "Web",
         platform_version: "1.0",
       },
     );
@@ -58,12 +60,12 @@ describe("MSW integration: ping", () => {
 
     const client = createClient();
     const result = await client.ping(
-      { name: "App", package: "com.test", platform: "web", version: { code: "1", name: "1.0" } },
+      { name: "App", package: "com.test", platform: "Web", version: { code: "1", name: "1.0" } },
       {
         identifier: "dev-1",
         manufacturer: "Test",
         model: "Browser",
-        platform: "web",
+        platform: "Web",
         platform_version: "1.0",
       },
       { battery: 80 },
@@ -85,14 +87,14 @@ describe("MSW integration: ping", () => {
         {
           name: "App",
           package: "com.test",
-          platform: "web",
+          platform: "Web",
           version: { code: "1", name: "1.0" },
         },
         {
           identifier: "d",
           manufacturer: "m",
           model: "m",
-          platform: "web",
+          platform: "Web",
           platform_version: "1",
         },
       ),
@@ -112,14 +114,14 @@ describe("MSW integration: ping", () => {
         {
           name: "App",
           package: "com.test",
-          platform: "web",
+          platform: "Web",
           version: { code: "1", name: "1.0" },
         },
         {
           identifier: "d",
           manufacturer: "m",
           model: "m",
-          platform: "web",
+          platform: "Web",
           platform_version: "1",
         },
       ),

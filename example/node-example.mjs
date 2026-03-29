@@ -33,14 +33,17 @@ try {
     {
       name: "My Node App",
       package: "com.example.nodeapp",
-      platform: "node",
+      // Server-side / Node.js processes are not one of the whitelisted client
+      // platforms (Android, iOS, Web), so use "Unknown" here.
+      platform: "Unknown",
       version: { code: "1", name: "1.0.0" },
     },
     {
       identifier: `node-${process.pid}`,
       manufacturer: "Node.js",
       model: process.version,
-      platform: process.platform,
+      // Server-side processes don't have a mobile/browser platform; use "Unknown".
+      platform: "Unknown",
       platform_version: process.versions.node,
     },
   );

@@ -14,11 +14,14 @@ export interface CriticConfig {
   captureConsoleLogs?: boolean;
 }
 
+/** Valid platform values accepted by the Critic API server whitelist. */
+export type Platform = "Android" | "iOS" | "Unknown" | "Web";
+
 /** Application metadata sent during ping. */
 export interface AppInfo {
   name: string;
   package: string;
-  platform: string;
+  platform: Platform;
   version: {
     code: string;
     name: string;
@@ -31,7 +34,7 @@ export interface DeviceInfo {
   manufacturer: string;
   model: string;
   network_carrier?: string;
-  platform: string;
+  platform: Platform;
   platform_version: string;
 }
 

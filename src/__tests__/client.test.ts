@@ -43,14 +43,14 @@ describe("CriticClient", () => {
     const app = {
       name: "TestApp",
       package: "com.test.app",
-      platform: "ios",
+      platform: "iOS",
       version: { code: "1", name: "1.0.0" },
     };
     const device = {
       identifier: "device-123",
       manufacturer: "Apple",
       model: "iPhone 15",
-      platform: "ios",
+      platform: "iOS",
       platform_version: "17.0",
     };
 
@@ -298,14 +298,14 @@ describe("CriticClient", () => {
           {
             name: "A",
             package: "p",
-            platform: "x",
+            platform: "Unknown",
             version: { code: "1", name: "1" },
           },
           {
             identifier: "d",
             manufacturer: "m",
             model: "m",
-            platform: "x",
+            platform: "Unknown",
             platform_version: "1",
           },
         );
@@ -326,14 +326,14 @@ describe("CriticClient", () => {
           {
             name: "A",
             package: "p",
-            platform: "x",
+            platform: "Unknown",
             version: { code: "1", name: "1" },
           },
           {
             identifier: "d",
             manufacturer: "m",
             model: "m",
-            platform: "x",
+            platform: "Unknown",
             platform_version: "1",
           },
         );
@@ -352,14 +352,14 @@ describe("CriticClient", () => {
           {
             name: "A",
             package: "p",
-            platform: "x",
+            platform: "Unknown",
             version: { code: "1", name: "1" },
           },
           {
             identifier: "d",
             manufacturer: "m",
             model: "m",
-            platform: "x",
+            platform: "Unknown",
             platform_version: "1",
           },
         ),

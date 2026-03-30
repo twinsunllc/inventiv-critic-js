@@ -106,7 +106,7 @@ jobs:
 
           for DEP in $DEPS; do
             PKG=$(echo "$DEP" | sed 's/@[^@]*$//')
-            VER=$(echo "$DEP" | grep -oE '[^@]+$')
+            VER=$(echo "$DEP" | grep -oE '[^@]+$' || true)
 
             if [ -z "$VER" ]; then continue; fi
 
@@ -115,7 +115,7 @@ jobs:
               continue
             fi
 
-            PUBLISHED=$(npm view "$PKG" "time.$VER" 2>/dev/null || true)
+            PUBLISHED=$(npm view "$PKG" --json time 2>/dev/null | jq -r --arg v "$VER" '.[$v] // empty' 2>/dev/null || true)
             if [ -z "$PUBLISHED" ]; then
               echo "  ⚠ Could not fetch publish date for $PKG@$VER"
               continue

@@ -2,14 +2,14 @@
  * Node.js usage example for the Inventiv Critic JS SDK.
  *
  * Prerequisites:
- *   npm install @twinsunllc/critic
+ *   npm install @twinsunllc/inventiv-critic-js
  *
  * Usage:
  *   API_TOKEN=your-org-token APP_API_TOKEN=your-app-token node example/node-example.mjs
  */
 
 // When installed from npm, use:
-//   import { CriticClient, CriticError, AuthError } from "@twinsunllc/critic";
+//   import { CriticClient, CriticError, AuthError } from "@twinsunllc/inventiv-critic-js";
 // During development with this repo:
 import { CriticClient, CriticError, AuthError } from "../dist/index.js";
 

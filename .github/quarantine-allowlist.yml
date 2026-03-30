@@ -19,4 +19,12 @@
 #       reason: "Major bump to fix esbuild GHSA-67mh-4wv8-2f99"
 #       expires: "2026-04-15"
 
-packages: []
+packages:
+  - name: "vite"
+    version: "8.0.3"
+    reason: "Vite 8.0.x release, well-established build tool from the Vite team"
+    expires: "2026-04-13"
+  - name: "vitest"
+    version: "4.1.2"
+    reason: "Vitest 4.1.x release, published alongside Vite 8 by the same team"
+    expires: "2026-04-13"

@@ -29,8 +29,7 @@
     "lint:fix": "eslint --fix . && prettier --write .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm run build"
+    "prepare": "npm run build"
   },
   "publishConfig": {
     "access": "public"

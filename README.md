@@ -7,7 +7,7 @@ Supports ESM, CommonJS, and browser `<script>` tag usage. Zero runtime dependenc
 ## Installation
 
 ```bash
-npm install @twinsunllc/critic
+npm install @twinsunllc/inventiv-critic-js
 ```
 
 ## Quick Start
@@ -15,7 +15,7 @@ npm install @twinsunllc/critic
 ### ES Modules / TypeScript
 
 ```typescript
-import { CriticClient } from "@twinsunllc/critic";
+import { CriticClient } from "@twinsunllc/inventiv-critic-js";
 
 const client = new CriticClient({
   apiToken: "YOUR_ORG_API_TOKEN",
@@ -48,7 +48,7 @@ await client.createBugReport(install.id, {
 ### CommonJS
 
 ```javascript
-const { CriticClient } = require("@twinsunllc/critic");
+const { CriticClient } = require("@twinsunllc/inventiv-critic-js");
 
 const client = new CriticClient({
   apiToken: "YOUR_ORG_API_TOKEN",
@@ -58,7 +58,7 @@ const client = new CriticClient({
 ### Script Tag (Browser)
 
 ```html
-<script src="https://unpkg.com/@twinsunllc/critic/dist/index.global.js"></script>
+<script src="https://unpkg.com/@twinsunllc/inventiv-critic-js/dist/index.global.js"></script>
 <script>
   const client = new Critic.CriticClient({
     apiToken: "YOUR_ORG_API_TOKEN",
@@ -110,7 +110,7 @@ Submit a bug report with optional file attachments and device status.
 ## Error Handling
 
 ```typescript
-import { CriticError, AuthError } from "@twinsunllc/critic";
+import { CriticError, AuthError } from "@twinsunllc/inventiv-critic-js";
 
 try {
   await client.ping(app, device);

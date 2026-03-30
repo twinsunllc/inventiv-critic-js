@@ -47,6 +47,20 @@ describe("ConsoleLogCapture", () => {
       capture.stop();
       expect(console.log).toBe(originalLog);
     });
+
+    it("is a no-op if stop is called multiple times (idempotent)", () => {
+      const originalLog = console.log;
+      capture.start();
+      expect(console.log).not.toBe(originalLog);
+      capture.stop();
+      expect(console.log).toBe(originalLog);
+      // Second and third stop should not throw and should leave console intact
+      expect(() => {
+        capture.stop();
+        capture.stop();
+      }).not.toThrow();
+      expect(console.log).toBe(originalLog);
+    });
   });
 
   describe("capturing", () => {

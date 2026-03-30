@@ -6,10 +6,10 @@ export interface CriticConfig {
   apiToken: string;
   /**
    * When `true`, wraps global `console` methods to capture the last 500 log
-   * entries. The captured logs are automatically attached as a text file to
-   * bug reports created via {@link CriticClient.createBugReport}.
+   * entries. The captured logs are automatically attached as `console-logs.txt`
+   * to bug reports created via {@link CriticClient.createBugReport}.
    *
-   * Defaults to `false` because it modifies global `console` methods.
+   * Defaults to `true`. Pass `false` to opt out of console capture.
    */
   captureConsoleLogs?: boolean;
 }

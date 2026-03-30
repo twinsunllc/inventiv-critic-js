@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { CriticClient, DEFAULT_HOST } from "../client.js";
 import { CriticError, AuthError } from "../errors.js";
 
@@ -24,9 +24,14 @@ describe("CriticClient", () => {
     });
   });
 
+  afterEach(() => {
+    client.destroy();
+  });
+
   describe("constructor", () => {
     it("uses default host when none provided", () => {
       const c = new CriticClient({ apiToken: "t" });
+      c.destroy();
       expect(c.host).toBe(DEFAULT_HOST);
     });
 
@@ -35,7 +40,23 @@ describe("CriticClient", () => {
         apiToken: "t",
         host: "https://custom.example.com/",
       });
+      c.destroy();
       expect(c.host).toBe("https://custom.example.com");
+    });
+
+    it("starts console capture by default (opt-out)", () => {
+      const originalLog = console.log;
+      const c = new CriticClient({ apiToken: "t" });
+      expect(console.log).not.toBe(originalLog);
+      c.destroy();
+      expect(console.log).toBe(originalLog);
+    });
+
+    it("does not start console capture when captureConsoleLogs is false", () => {
+      const originalLog = console.log;
+      const c = new CriticClient({ apiToken: "t", captureConsoleLogs: false });
+      expect(console.log).toBe(originalLog);
+      c.destroy();
     });
   });
 
@@ -197,13 +218,16 @@ describe("CriticClient", () => {
       );
     });
 
-    it("does not attach console logs when captureConsoleLogs is disabled", async () => {
+    it("does not attach console logs when captureConsoleLogs is false", async () => {
+      const noCapture = new CriticClient({ apiToken: "org-token", captureConsoleLogs: false });
       mockFetch.mockResolvedValue(mockResponse(201, bugReport));
 
-      await client.createBugReport("install-uuid", { description: "Bug" });
+      console.log("this should not be captured");
+      await noCapture.createBugReport("install-uuid", { description: "Bug" });
 
       const fd: FormData = mockFetch.mock.calls[0][1].body;
       expect(fd.getAll("bug_report[attachments][]")).toHaveLength(0);
+      noCapture.destroy();
     });
 
     it("auto-attaches console logs when captureConsoleLogs is enabled", async () => {
@@ -273,18 +297,19 @@ describe("CriticClient", () => {
 
   describe("destroy", () => {
     it("restores console methods after destroy", () => {
-      const originalLog = console.log;
+      // client from beforeEach already wraps console; capture the current (wrapped) state
+      const wrappedByBeforeEach = console.log;
       const captureClient = new CriticClient({
         apiToken: "org-token",
         captureConsoleLogs: true,
       });
-      expect(console.log).not.toBe(originalLog);
+      expect(console.log).not.toBe(wrappedByBeforeEach);
       captureClient.destroy();
-      expect(console.log).toBe(originalLog);
+      expect(console.log).toBe(wrappedByBeforeEach);
     });
 
-    it("is a no-op when captureConsoleLogs is not enabled", () => {
-      const c = new CriticClient({ apiToken: "t" });
+    it("is safe to call when captureConsoleLogs is false", () => {
+      const c = new CriticClient({ apiToken: "t", captureConsoleLogs: false });
       expect(() => c.destroy()).not.toThrow();
     });
   });

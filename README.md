@@ -91,6 +91,9 @@ const client = new CriticClient({
 
   // Optional: override the API host (default: https://critic.inventiv.io)
   host: "https://custom-critic-host.example.com",
+
+  // Optional: disable console log capture (default: true — opt out by passing false)
+  captureConsoleLogs: false,
 });
 ```
 

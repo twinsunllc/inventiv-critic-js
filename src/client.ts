@@ -40,7 +40,7 @@ export class CriticClient {
     this.host = (config.host ?? DEFAULT_HOST).replace(/\/+$/, "");
     this.apiToken = config.apiToken;
 
-    if (config.captureConsoleLogs) {
+    if (config.captureConsoleLogs !== false) {
       this.consoleCapture = new ConsoleLogCapture();
       this.consoleCapture.start();
     }

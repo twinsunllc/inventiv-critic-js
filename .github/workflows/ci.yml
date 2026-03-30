@@ -58,7 +58,7 @@ jobs:
 
   package-age-check:
     name: npm Package Age Check
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -75,6 +75,25 @@ jobs:
           NOW=$(date +%s)
           FAILED=0
 
+          # --- Load quarantine allowlist ---
+          ALLOWLIST_FILE=".github/quarantine-allowlist.yml"
+          is_allowlisted() {
+            local pkg="$1" ver="$2"
+            if [ ! -f "$ALLOWLIST_FILE" ]; then return 1; fi
+            python3 -c "
+          import yaml, sys, datetime
+          with open('$ALLOWLIST_FILE') as f:
+              data = yaml.safe_load(f) or {}
+          for entry in data.get('packages', []):
+              exp = entry.get('expires') or ''
+              if isinstance(exp, datetime.date):
+                  exp = exp.isoformat()
+              if entry.get('name') == sys.argv[1] and entry.get('version') == sys.argv[2] and exp >= datetime.date.today().isoformat():
+                  sys.exit(0)
+          sys.exit(1)
+          " "$pkg" "$ver" 2>/dev/null
+          }
+
           # Get all resolved production + dev dependencies from package-lock.json
           DEPS=$(npm ls --all --json 2>/dev/null | jq -r '
             [.. | .dependencies? // empty | to_entries[] | "\(.key)@\(.value.version // "")"]
@@ -87,11 +106,16 @@ jobs:
 
           for DEP in $DEPS; do
             PKG=$(echo "$DEP" | sed 's/@[^@]*$//')
-            VER=$(echo "$DEP" | grep -oE '[^@]+$')
+            VER=$(echo "$DEP" | grep -oE '[^@]+$' || true)
 
             if [ -z "$VER" ]; then continue; fi
 
-            PUBLISHED=$(npm view "$PKG" "time.$VER" 2>/dev/null || true)
+            if is_allowlisted "$PKG" "$VER"; then
+              echo "  ⊘ ALLOWLISTED: $PKG@$VER (skipping age check)"
+              continue
+            fi
+
+            PUBLISHED=$(npm view "$PKG" --json time 2>/dev/null | jq -r --arg v "$VER" '.[$v] // empty' 2>/dev/null || true)
             if [ -z "$PUBLISHED" ]; then
               echo "  ⚠ Could not fetch publish date for $PKG@$VER"
               continue

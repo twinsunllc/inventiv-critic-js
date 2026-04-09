@@ -1,6 +1,6 @@
 # Inventiv Critic JavaScript SDK
 
-Official JavaScript/TypeScript client for [Inventiv Critic](https://inventiv.io/critic/).
+Official JavaScript/TypeScript client for [Inventiv Critic](https://critictracking.com).
 
 Supports ESM, CommonJS, and browser `<script>` tag usage. Zero runtime dependencies — uses native `fetch()`.
 

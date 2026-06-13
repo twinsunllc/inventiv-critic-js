@@ -140,3 +140,14 @@ packages:
     version: "4.0.4"
     reason: "Glob matching utility patch release"
     expires: "2026-04-13"
+  # esbuild 0.28.1 — fixes npm-audit high advisories GHSA-gv7w-rqvm-qjhr and
+  # GHSA-g7r4-m6w7-qqqr (vulnerable 0.17.0–0.28.0); pinned via package.json override.
+  # Published 2026-06-11, so within the 7-day quarantine until 2026-06-18.
+  - name: "esbuild"
+    version: "0.28.1"
+    reason: "Security patch for GHSA-gv7w-rqvm-qjhr and GHSA-g7r4-m6w7-qqqr; published by the esbuild author"
+    expires: "2026-06-30"
+  - name: "@esbuild/linux-x64"
+    version: "0.28.1"
+    reason: "esbuild 0.28.1 Linux x64 platform binary, coordinated release"
+    expires: "2026-06-30"

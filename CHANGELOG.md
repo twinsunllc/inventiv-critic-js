@@ -5,6 +5,17 @@ All notable changes to `@twinsunllc/inventiv-critic-js` are documented in this f
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Security
+
+- Bumped the `vite` npm override from `>= 8.0.5` to `>= 8.0.16` to remediate
+  GHSA-fx2h-pf6j-xcff (`server.fs.deny` bypass) and GHSA-v6wh-96g9-6wx3
+  (launch-editor NTLMv2 hash disclosure).
+- Added a `js-yaml` override (`>= 4.2.0`) to remediate GHSA-h67p-54hq-rp68
+  (quadratic-complexity DoS via YAML merge keys) pulled in transitively through
+  ESLint. Both are dev-only dependencies; the published artifact is unaffected.
+
 ## [2.0.1] - 2026-04-09
 
 ### Changed

@@ -15,6 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a `js-yaml` override (`>= 4.2.0`) to remediate GHSA-h67p-54hq-rp68
   (quadratic-complexity DoS via YAML merge keys) pulled in transitively through
   ESLint. Both are dev-only dependencies; the published artifact is unaffected.
+- Raised the `brace-expansion` override from `>= 5.0.6` to `>= 5.0.7` to
+  remediate GHSA-3jxr-9vmj-r5cp (DoS via exponential-time expansion of
+  consecutive non-expanding `{}` groups), and the `js-yaml` override from
+  `>= 4.2.0` to `>= 4.3.0` to remediate GHSA-52cp-r559-cp3m (quadratic CPU
+  consumption via YAML merge-key chains). The prior overrides were pinned to the
+  inclusive upper bound of each advisory's vulnerable range and so still
+  matched. Both remain dev-only transitive dependencies of ESLint; the published
+  artifact is unaffected.
 
 ## [2.0.1] - 2026-04-09
 

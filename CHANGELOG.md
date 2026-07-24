@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Pinned the `postcss` npm override from `>= 8.5.10` to `8.5.19` to remediate
+  GHSA-6g55-p6wh-862q (arbitrary file read and information disclosure via an
+  attacker-controlled `sourceMappingURL` in CSS comments). The prior override
+  resolved to `8.5.10`, which falls inside the advisory's vulnerable range
+  (`<= 8.5.11`). `postcss` remains a dev-only transitive dependency (via `tsup`,
+  `postcss-load-config`, and `vite`); the published artifact is unaffected.
 - Bumped the `vite` npm override from `>= 8.0.5` to `>= 8.0.16` to remediate
   GHSA-fx2h-pf6j-xcff (`server.fs.deny` bypass) and GHSA-v6wh-96g9-6wx3
   (launch-editor NTLMv2 hash disclosure).

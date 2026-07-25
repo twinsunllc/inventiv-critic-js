@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Raised the `brace-expansion` override from `>= 5.0.7` to `>= 5.0.8` to
+  remediate GHSA-mh99-v99m-4gvg (vulnerable `<= 5.0.7`, fixed in `5.0.8`), and
+  the `js-yaml` override from `>= 4.3.0` to `>= 5.2.2` to remediate
+  GHSA-pm4m-ph32-ghv5 (vulnerable `5.0.0`–`5.2.1`, fixed in `5.2.2`). The prior
+  overrides had gone stale and still resolved to vulnerable versions
+  (`brace-expansion@5.0.7`, `js-yaml@5.2.1`). Both patched releases were
+  published 2026-07-23 and are temporarily added to
+  `.github/quarantine-allowlist.yml` while inside the 7-day package-age
+  quarantine window. Both remain dev-only transitive dependencies of ESLint; the
+  published artifact is unaffected.
 - Pinned the `postcss` npm override from `>= 8.5.10` to `8.5.19` to remediate
   GHSA-6g55-p6wh-862q (arbitrary file read and information disclosure via an
   attacker-controlled `sourceMappingURL` in CSS comments). The prior override

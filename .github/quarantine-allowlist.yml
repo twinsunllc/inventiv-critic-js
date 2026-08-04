@@ -151,12 +151,12 @@ packages:
     version: "0.28.1"
     reason: "esbuild 0.28.1 Linux x64 platform binary, coordinated release"
     expires: "2026-06-30"
-  # brace-expansion 5.0.8 — fixes npm-audit advisory GHSA-mh99-v99m-4gvg
-  # (vulnerable <=5.0.7); pinned via package.json override.
-  # Published 2026-07-23, so within the 7-day quarantine until 2026-07-30.
+  # brace-expansion 5.0.9 — fixes npm-audit high advisory GHSA-rgw5-rvv9-x895
+  # (vulnerable 4.0.0–5.0.8); pinned via package.json override.
+  # Published 2026-07-30, so within the 7-day quarantine until 2026-08-06.
   - name: "brace-expansion"
-    version: "5.0.8"
-    reason: "Security patch for GHSA-mh99-v99m-4gvg (brace-expansion <=5.0.7); widely-used glob utility patch release"
+    version: "5.0.9"
+    reason: "Security patch for GHSA-rgw5-rvv9-x895 (brace-expansion 4.0.0-5.0.8); widely-used glob utility patch release"
     expires: "2026-08-15"
   # js-yaml 5.2.2 — fixes npm-audit advisory GHSA-pm4m-ph32-ghv5
   # (vulnerable 5.0.0–5.2.1); pinned via package.json override.

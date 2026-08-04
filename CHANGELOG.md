@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Raised the `brace-expansion` override from `>= 5.0.8` to `>= 5.0.9` to
+  remediate GHSA-rgw5-rvv9-x895 (denial of service via unbounded intermediate
+  arrays, bypassing the CVE-2026-14257 mitigation; vulnerable `4.0.0`–`5.0.8`,
+  fixed in `5.0.9`), and pinned the `postcss` override from `8.5.19` to `8.5.23`
+  to remediate GHSA-fxqj-rqcc-2cmp (incomplete fix of GHSA-6g55-p6wh-862q —
+  an attacker-controlled `sourceMappingURL` still reads arbitrary `.map` files
+  when `from` is unset; vulnerable `<= 8.5.22`). `brace-expansion@5.0.9` was
+  published 2026-07-30 and is temporarily added to
+  `.github/quarantine-allowlist.yml` while inside the 7-day package-age
+  quarantine window; `postcss@8.5.23` is outside that window and needs no entry.
+  Both remain dev-only transitive dependencies (ESLint, and `tsup` /
+  `postcss-load-config` / `vite` respectively); the published artifact is
+  unaffected.
 - Raised the `brace-expansion` override from `>= 5.0.7` to `>= 5.0.8` to
   remediate GHSA-mh99-v99m-4gvg (vulnerable `<= 5.0.7`, fixed in `5.0.8`), and
   the `js-yaml` override from `>= 4.3.0` to `>= 5.2.2` to remediate

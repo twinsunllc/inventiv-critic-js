@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Added a `nanoid` override pinned to `3.3.17` to remediate GHSA-2v37-7h3g-55p8
+  (custom generators can loop indefinitely when `size` is zero; vulnerable
+  `< 3.3.17`, fixed in `3.3.17`). The override is an exact pin rather than a
+  range because npm overrides replace the parent's declared spec instead of
+  intersecting with it, so an open range would resolve to the `latest`
+  dist-tag — `nanoid@6.x`, an ESM-only major that breaks `postcss`'s `^3.3.16`
+  requirement. `nanoid` remains a dev-only transitive dependency of the pinned
+  `postcss@8.5.23` (via `tsup` / `postcss-load-config` and `vite` / `vitest`);
+  the published artifact is unaffected. `nanoid@3.3.17` was published 2026-08-03
+  and is temporarily added to `.github/quarantine-allowlist.yml` while inside
+  the 7-day package-age quarantine window.
 - Raised the `brace-expansion` override from `>= 5.0.8` to `>= 5.0.9` to
   remediate GHSA-rgw5-rvv9-x895 (denial of service via unbounded intermediate
   arrays, bypassing the CVE-2026-14257 mitigation; vulnerable `4.0.0`–`5.0.8`,

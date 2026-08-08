@@ -165,3 +165,10 @@ packages:
     version: "5.2.2"
     reason: "Security patch for GHSA-pm4m-ph32-ghv5 (js-yaml 5.0.0–5.2.1); YAML parser patch release"
     expires: "2026-08-15"
+  # nanoid 3.3.17 — fixes npm-audit high advisory GHSA-2v37-7h3g-55p8
+  # (vulnerable < 3.3.17); pinned via package.json override.
+  # Published 2026-08-03, so within the 7-day quarantine until 2026-08-10.
+  - name: "nanoid"
+    version: "3.3.17"
+    reason: "Security patch for GHSA-2v37-7h3g-55p8 (nanoid < 3.3.17); dev-only transitive dependency of postcss"
+    expires: "2026-08-20"

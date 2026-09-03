@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Bumped the dev-only transitive dependency `@humanfs/node` from `0.16.7` to
+  `0.16.8` (and `@humanfs/core` from `0.19.1` to `0.19.2`, pulling in the new
+  `@humanfs/types@0.15.0`) to remediate GHSA-p498-v437-472g — a recursive copy
+  in humanfs follows symlinked files and copies data from outside the source
+  tree (vulnerable `< 0.16.8`). This is a lockfile-only change: `@humanfs/node`
+  reaches the tree through `eslint@9.39.4`, whose declared `^0.16.6` range
+  already admits the patched `0.16.8`, so no `overrides` entry was added — an
+  override here would be permanent dead weight, unlike the existing ones that
+  exist because a parent range blocked the patched version. All three packages
+  were published on or before 2026-04-17, well outside the 7-day package-age
+  quarantine window, so no `.github/quarantine-allowlist.yml` entry was needed
+  either. The published artifact is unaffected.
 - Raised the `nanoid` override from `3.3.17` to `3.3.18` to remediate
   GHSA-2v37-7h3g-55p8, whose vulnerable range was widened from `< 3.3.17` to
   `< 3.3.18` (custom generators can loop indefinitely when `size` is zero). The

@@ -9,6 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Hardened the Nightly Security workflow's `npm Audit` job so an npm registry
+  outage no longer reads as a vulnerability. Run 33842613035 failed not on an
+  advisory but on `503 Service Unavailable - POST
+https://registry.npmjs.org/-/npm/v1/security/audits/quick`, which npm surfaces
+  as `audit endpoint returned an error` and exit code 1 — indistinguishable, to
+  a bare `npm audit --audit-level=moderate`, from a genuine finding. The step now
+  runs `scripts/npm-audit.sh`, which treats a response as conclusive only when
+  `npm audit --json` returns a payload carrying `.metadata.vulnerabilities`.
+  Conclusive results are final: clean passes, findings fail immediately with no
+  retries and a human-readable report rendered from the same payload. Anything
+  else — an error payload, empty output, malformed JSON — is classified
+  inconclusive and retried with exponential backoff (`AUDIT_MAX_ATTEMPTS`,
+  default 4; `RETRY_BASE_SECONDS`, default 30), so an unrecognised response can
+  never be mistaken for a clean audit. Once retries are exhausted the job emits a
+  `::warning::` annotation and a job-summary line and passes, which is flippable
+  to fail-closed with `AUDIT_FAIL_ON_REGISTRY_ERROR=true`; the job is bounded by
+  `timeout-minutes: 30`. The audit threshold is unchanged at `moderate`, and
+  `npm audit --audit-level=moderate` reports 0 vulnerabilities on this branch, so
+  no dependency was touched. The script is CI-only and excluded from the package
+  by the existing `files: ["dist"]` manifest, so the published artifact is
+  unaffected.
 - Bumped the dev-only transitive dependency `@humanfs/node` from `0.16.7` to
   `0.16.8` (and `@humanfs/core` from `0.19.1` to `0.19.2`, pulling in the new
   `@humanfs/types@0.15.0`) to remediate GHSA-p498-v437-472g — a recursive copy

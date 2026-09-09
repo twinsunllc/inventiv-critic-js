@@ -9,6 +9,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Bumped the dev-only dependency `vitest` from `4.1.2` to `4.1.11` to remediate
+  GHSA-82fw-gwwq-j7x9, a path traversal / arbitrary file read in
+  `@vitest/mocker` (vulnerable `>= 2.1.0, < 4.1.11`). The mocker registers a
+  redirect mock's target path without validating it against the dev server's
+  file-serving allowlist: `new URL(redirect).pathname` joined onto
+  `server.config.root` does not confine the result to the project root, and the
+  `load` hook then returns `readFile(<attacker path>)` as the module source. On
+  the public `mockerPlugin` / `interceptorPlugin` exports the handler is
+  registered on Vite's HMR WebSocket, which performs no token, Origin or
+  same-origin check, so anyone who can reach that socket can disclose local
+  files without authenticating. Vitest's own browser mode registers mocks behind
+  a per-run token and is not remotely reachable by default; this package only
+  runs `vitest run` in CI and never exposes a dev server, so exposure was
+  limited, but the advisory still fails `npm audit` at the `moderate` threshold
+  the Nightly Security workflow enforces. `4.1.11` is the first patched release
+  on the 4.x line. The bump moves eight packages in lockstep — `vitest` itself
+  plus the coordinated `@vitest/expect`, `@vitest/mocker`,
+  `@vitest/pretty-format`, `@vitest/runner`, `@vitest/snapshot`, `@vitest/spy`
+  and `@vitest/utils` — and nothing else; `vite` stays at `8.0.16` and
+  `rolldown` at `1.0.3`. No `overrides` entry was added: `vitest` is a direct
+  devDependency whose range this package controls, and `@vitest/mocker` is
+  pinned by `vitest` to its own exact version, so no parent range blocks the
+  patched release and an override would be permanent dead weight — the same
+  reasoning recorded for `@humanfs/node` below. No
+  `.github/quarantine-allowlist.yml` entry was needed either: all eight packages
+  were published 2026-08-18, comfortably outside the 7-day package-age
+  quarantine window. The bump deliberately stays on the 4.x major rather than
+  taking `vitest@5.0.0`, which was published 2026-09-03 and is itself still
+  inside that quarantine window; a 5.x migration is a separate change. `vitest`
+  is a test-time dependency only, so the published artifact is unaffected under
+  the existing `files: ["dist"]` manifest.
 - Hardened the Nightly Security workflow's `npm Audit` job so an npm registry
   outage no longer reads as a vulnerability. Run 33842613035 failed not on an
   advisory but on `503 Service Unavailable - POST

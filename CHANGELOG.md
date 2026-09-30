@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Raised the `brace-expansion` override from `>=5.0.9` to `>=5.0.12` and the
+  `js-yaml` override from `>=5.2.2` to `>=5.4.2`, moving the lockfile from
+  `brace-expansion@5.0.9` to `5.0.12` and from `js-yaml@5.2.2` to `5.4.2`. This
+  fixes the Nightly Security `npm Audit` failure in run 36676057545 (CRITIC-321).
+  `brace-expansion` had three high-severity CPU / stack-exhaustion denial of
+  service advisories, all vulnerable `4.0.0 - 5.0.11`: GHSA-q2hr-2g5m-vwhr
+  (quadratic-time expansion of the `{a},b}` rewrite), GHSA-qhr7-859c-m2p7
+  (uncontrolled recursion on nested brace groups) and GHSA-6j4f-fj2g-mc7p
+  (uncontrolled recursion in `parseCommaParts`). `js-yaml` had one
+  moderate-severity advisory, GHSA-r3ph-w7gj-g6xm, vulnerable `5.0.0 - 5.4.0`:
+  `maxTotalMergeKeys` does not limit CPU use for empty merge sources. Both
+  packages are dev-only transitive dependencies. `brace-expansion` comes in
+  through `minimatch` under `eslint` and `typescript-eslint`, and `js-yaml`
+  through `@eslint/eslintrc`. The existing overrides stay in place because the
+  parent ranges would otherwise resolve to the vulnerable versions; only their
+  floors move. `js-yaml` goes to `5.4.2`, the current `latest`, rather than the
+  first patched `5.4.1`. Both releases are well outside the 7-day package-age
+  quarantine window: `brace-expansion@5.0.12` was published 2026-09-14 and
+  `js-yaml@5.4.2` on 2026-09-13. No `.github/quarantine-allowlist.yml` entry was
+  needed. The lockfile diff is limited to these two entries, and
+  `npm audit --audit-level=moderate` now reports 0 vulnerabilities. The
+  published artifact is unaffected.
 - Bumped the dev-only dependency `vitest` from `4.1.2` to `4.1.11` to remediate
   GHSA-82fw-gwwq-j7x9, a path traversal / arbitrary file read in
   `@vitest/mocker` (vulnerable `>= 2.1.0, < 4.1.11`). The mocker registers a

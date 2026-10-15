@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Relocked the dev-only transitive dependency `source-map-js` from `1.2.1` to
+  `1.2.2` in `package-lock.json`. This fixes the Nightly Security `npm Audit`
+  failure in run 37421436138 (CRITIC-323), which reported the high-severity
+  advisory GHSA-68fv-2mgg-jv7q (vulnerable `1.0.0 - 1.2.1`, patched in
+  `1.2.2`). The only path to the package is `tsup` > `postcss` >
+  `source-map-js`. `postcss@8.5.23`, pinned by the existing override, declares
+  `source-map-js@^1.2.1`, so `1.2.2` is already in range. No `package.json`
+  change or new override was needed. The lockfile diff changes only the
+  `version`, `resolved` and `integrity` fields of that one entry.
+  `source-map-js@1.2.2` was published 2026-09-30, outside the 7-day
+  package-age quarantine window, so no `.github/quarantine-allowlist.yml` entry
+  was needed. The published artifact is unaffected.
 - Raised the `brace-expansion` override from `>=5.0.9` to `>=5.0.12` and the
   `js-yaml` override from `>=5.2.2` to `>=5.4.2`, moving the lockfile from
   `brace-expansion@5.0.9` to `5.0.12` and from `js-yaml@5.2.2` to `5.4.2`. This

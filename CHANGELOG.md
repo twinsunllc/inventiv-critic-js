@@ -9,6 +9,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Fixed the Nightly Security `npm Audit` failure in run 41977589160
+  (CRITIC-333), which reported three dev-only dependency advisories:
+  - `vite` `8.0.16` (high; GHSA-698v-4r3x-3vcv, GHSA-r825-w8mm-5pxw,
+    GHSA-587h-7wmj-h5pm, GHSA-9jrq-w75r-8gcw, GHSA-rq7h-c2jc-7f22; vulnerable
+    `8.0.0 - 8.1.5`). Raised the `vite` override from `>=8.0.16` to `>=8.1.6`;
+    the lockfile now resolves `vite@8.3.5`.
+  - `vitest` / `@vitest/mocker` `4.1.11` (moderate; GHSA-qxg6-89mg-rqv8,
+    GHSA-xp26-3454-mjgp; patched in `4.1.12`). Bumped the `vitest`
+    devDependency from `^4.1.11` to `^4.1.12`; the lockfile now resolves
+    `vitest` and every `@vitest/*` package to `4.1.12`.
+  - `minimatch` `10.2.4` nested under `@typescript-eslint/typescript-estree`
+    (moderate; GHSA-g3hv-75wg-m249; vulnerable `7.0.0 - 11.0.0`, with no 10.x
+    fix). Added the scoped override
+    `"@typescript-eslint/typescript-estree": { "minimatch": "^11.0.1" }`, so
+    that copy resolves to `minimatch@11.0.3`. `typescript-estree` declares
+    `^10.2.2`, so this crosses a major it does not declare. Its only
+    `minimatch` call matches `projectService.allowDefaultProject` globs, and
+    that path was exercised with `minimatch@11.0.3` before merge. eslint's own
+    `minimatch@3.1.5` is outside the vulnerable range and is unchanged.
+
+  The relock used `npm install --before=2026-10-29`, so every changed package
+  version is at least 7 days old and passes the package-age quarantine with no
+  `.github/quarantine-allowlist.yml` entry. The `vite` bump moved `rolldown` from
+  `1.0.3` to `1.2.15`. That release no longer declares the
+  `@rolldown/binding-wasm32-wasi` optional binding, so the lockfile drops it and
+  its WASI runtime dependencies (`@emnapi/*`, `@napi-rs/wasm-runtime`,
+  `@tybys/wasm-util`, `tslib`). Every binding `rolldown@1.2.15` declares is
+  locked. The published artifact is unaffected.
+
 - Relocked the dev-only transitive dependency `source-map-js` from `1.2.1` to
   `1.2.2` in `package-lock.json`. This fixes the Nightly Security `npm Audit`
   failure in run 37421436138 (CRITIC-323), which reported the high-severity

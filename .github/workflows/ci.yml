@@ -17,7 +17,8 @@ jobs:
   test:
     name: Test (Node ${{ matrix.node-version }})
     if: github.event_name != 'schedule'
-    runs-on: [runs-on,runner=2cpu-linux-x64,image=ubuntu24-full-x64,"run-id=${{ github.run_id }}"]
+    runs-on:
+      [runs-on, runner=2cpu-linux-x64, image=ubuntu24-full-x64, "run-id=${{ github.run_id }}"]
     strategy:
       matrix:
         node-version: [20, 22]
@@ -46,7 +47,8 @@ jobs:
   npm-audit:
     name: npm Audit
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: [runs-on,runner=2cpu-linux-x64,image=ubuntu24-full-x64,"run-id=${{ github.run_id }}"]
+    runs-on:
+      [runs-on, runner=2cpu-linux-x64, image=ubuntu24-full-x64, "run-id=${{ github.run_id }}"]
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
@@ -67,7 +69,8 @@ jobs:
   package-age-check:
     name: npm Package Age Check
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'pull_request'
-    runs-on: [runs-on,runner=2cpu-linux-x64,image=ubuntu24-full-x64,"run-id=${{ github.run_id }}"]
+    runs-on:
+      [runs-on, runner=2cpu-linux-x64, image=ubuntu24-full-x64, "run-id=${{ github.run_id }}"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
@@ -156,7 +159,8 @@ jobs:
   actions-security:
     name: GitHub Actions Security Check
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: [runs-on,runner=2cpu-linux-x64,image=ubuntu24-full-x64,"run-id=${{ github.run_id }}"]
+    runs-on:
+      [runs-on, runner=2cpu-linux-x64, image=ubuntu24-full-x64, "run-id=${{ github.run_id }}"]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - name: Run GitHub Actions security audit

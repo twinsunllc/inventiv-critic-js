@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Fixed the Nightly Security `GitHub Actions Security Check` failure in runs
+  44248205952 and 44684802838 (CRITIC-335): `twinsunllc/github-actions-security-checker`
+  v1.4.1 asks `actions/setup-python` for Python 3.9, which has no build for
+  Ubuntu 26.04. The checker pin moves to v1.5.1 (`ec20bb8f`, Python 3.13), the
+  oldest tag that no longer asks for 3.9, and CI jobs run on RunsOn runners with
+  the `ubuntu24-full-x64` image pinned. The `npm Audit` failure in run
+  44248205952 (picomatch, GHSA-fc5q-39xc-vjpf) needed no change: that advisory
+  was withdrawn on 2026-11-18, and no allowlist entry was added for it.
 - Fixed the Nightly Security `npm Audit` failure in run 41977589160
   (CRITIC-333), which reported three dev-only dependency advisories:
   - `vite` `8.0.16` (high; GHSA-698v-4r3x-3vcv, GHSA-r825-w8mm-5pxw,
